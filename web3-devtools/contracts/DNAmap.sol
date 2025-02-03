@@ -7,17 +7,19 @@ contract DNAmap is Ownable
 {
     mapping (address => DNAData) public dnaList;
     uint public registrationFee;
+    uint public updateFee;
     uint256 public totalFeesAllocated;
     address noOwner  = 0x0000000000000000000000000000000000000000; //zero address
 
-    constructor(uint _regFee) Ownable(msg.sender)
+    constructor(uint _regFee, uint _updateFee) Ownable(msg.sender)
     {    
-        registrationFee = _regFee;    
+        registrationFee = _regFee;
+        updateFee = _updateFee;    
     }
 
     function registerDNA(string memory _name, uint256 _birthDate, bytes memory _dnaEncrypt) public payable
     {
-        require(msg.value >= registrationFee, "Insufficient funds");
+        require(msg.value == registrationFee, "Insufficient funds");
 
         require(dnaList[msg.sender].owner == noOwner, "Already registered");
 
@@ -29,8 +31,9 @@ contract DNAmap is Ownable
         totalFeesAllocated += registrationFee;        
     }
 
-    function updateNonEncryptedDNA(string [] memory _codes, uint _updateFee) public payable 
+    function updateNonEncryptedDNA(string [] memory _codes) public payable 
     {
+        require(msg.value == updateFee, "Insufficient funds");
         require(dnaList[msg.sender].owner == msg.sender, "User not registered");        
         
         bytes memory encrypted = abi.encode(_codes);
@@ -41,9 +44,9 @@ contract DNAmap is Ownable
         totalFeesAllocated += _updateFee;        
     }
 
-    function getDNAData(address receiver) view public onlyOwner returns (DNAData memory)
+    function getDNAData() view public onlyOwner returns (DNAData memory)
     {
-        DNAData memory dnaData = dnaList[receiver];
+        DNAData memory dnaData = dnaList[msg.sender];
 
         return dnaData;
     } 
